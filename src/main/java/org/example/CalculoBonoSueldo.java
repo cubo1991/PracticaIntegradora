@@ -129,7 +129,7 @@ public class CalculoBonoSueldo {
             bonoSueldo.setDeducciones(deduccionesCalculadas);
 
             // Calcular y asignar monto de liquidación
-            bonoSueldo.setMontoLiquidacion((empleado.getSueldoBasico() + haberesTotales) - deduccionesTotales);
+            bonoSueldo.setMontoLiquidacion((empleado.getSueldoBasico() +empleado.getMontoAntiguedad() + haberesTotales) - deduccionesTotales);
             bonoNuevo.add(bonoSueldo);
 
             // Preguntar si se desea cargar otro bono
@@ -140,20 +140,55 @@ public class CalculoBonoSueldo {
 
         // Mostrar resultados de todos los bonos
         for (BonoSueldo bono : bonoNuevo) {
-            System.out.printf("Empleado: %-20s CUIL: %-15d Año: %-4d Mes: %-2d%n",
-                    bono.getEmpleado().getNombreEmpleado(), bono.getEmpleado().getCuil(),
-                    bono.getAnioLiquidacion(), bono.getMesLiquidacion());
-            System.out.println("Haberes:");
+            // Encabezado del recibo, este debe imprimirse una vez por bono
+            System.out.println("Nombre             : " + bono.getEmpleado().getNombreEmpleado());
+            System.out.println("CUIL               : " + bono.getEmpleado().getCuil());
+            System.out.println("Mes Liquidación    : " + bono.getMesLiquidacion() + "            Año Liquidación: " + bono.getAnioLiquidacion());
+            System.out.println("Sueldo Básico      : " + bono.getEmpleado().getSueldoBasico() + "        Año Ingreso: " + bono.getEmpleado().getAnioIngreso());
+
+            // Línea separadora para la tabla
+            System.out.println("--------------------------------------------------------------------------------");
+
+            // Imprimir los haberes y deducciones
+            System.out.printf("%-12s %-20s %-10s %-10s%n", "Ítem", "Denominación", "Haberes", "Deducciones");
+            System.out.println("--------------------------------------------------------------------------------");
+            System.out.printf("%-12s %-20s %-10s %-10s%n","", "Sueldo básico", bono.getEmpleado().getSueldoBasico(), "");
+            System.out.printf("%-12s %-20s %-10s %-10s%n","", "Antiguedad", bono.getEmpleado().getMontoAntiguedad(), "");
             for (String[] haber : bono.getHaberes()) {
-                if (haber[0] != null) System.out.printf("%-12s %-20s %-10s%n", haber[0], haber[1], haber[2]);
+                if (haber[0] != null) {
+                    System.out.printf("%-12s %-20s %-10s %-10s%n",
+                            haber[0],
+                            haber[1],
+                            haber[2] != null ? haber[2] : "",
+                            haber[3] != null ? haber[3] : "");
+                }
             }
-            System.out.println("Deducciones:");
+
             for (String[] deduccion : bono.getDeducciones()) {
-                if (deduccion[0] != null) System.out.printf("%-12s %-20s %-10s%n", deduccion[0], deduccion[1], deduccion[3]);
+                if (deduccion[0] != null) {
+                    System.out.printf("%-12s %-20s %-10s %-10s%n",
+                            deduccion[0],
+                            deduccion[1],
+                            deduccion[2] != null ? deduccion[2] : "",
+                            deduccion[3] != null ? deduccion[3] : "");
+                }
             }
-            System.out.printf("Total Haberes: %-10.2f Total Deducciones: %-10.2f Neto: %-10.2f%n",
-                    bono.getHaberesTotales(), bono.getDeduccionesTotales(), bono.getMontoLiquidacion());
+
+            // Línea separadora para los totales
+            System.out.println("--------------------------------------------------------------------------------");
+
+            // Imprimir subtotales de haberes y deducciones
+            System.out.printf("%-12s %-20s %-10s %-10s%n","", "SUB TOTAL", bono.getHaberesTotales(), bono.getDeduccionesTotales());
+
+            // Imprimir el total neto
+            System.out.printf("%-12s %-20s %-10s %-10s%n","","", "NETO", bono.getHaberesTotales()- bono.getDeduccionesTotales());
+
+            // Línea separadora final
             System.out.println("--------------------------------------------------------------------------------");
         }
+
+
+
+
     }
 }
