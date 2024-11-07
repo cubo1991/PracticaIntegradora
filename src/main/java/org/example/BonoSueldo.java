@@ -7,7 +7,26 @@ public class BonoSueldo {
     private int mesLiquidacion;
     private int anioLiquidacion;
     private String [][] haberes = new String [1][4];
+
+    public double getHaberesTotales() {
+        return haberesTotales;
+    }
+
+    public void setHaberesTotales(double haberesTotales) {
+        this.haberesTotales = haberesTotales;
+    }
+
+    public double getDeduccionesTotales() {
+        return deduccionesTotales;
+    }
+
+    public void setDeduccionesTotales(double deduccionesTotales) {
+        this.deduccionesTotales = deduccionesTotales;
+    }
+
     private String [][] deducciones = new String [1][4];
+    private double haberesTotales = 0.0;
+    private double deduccionesTotales = 0.0;
 
     public String[][] getHaberes() {
         return haberes;
