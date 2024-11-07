@@ -7,6 +7,7 @@ public class BonoSueldo {
     private int mesLiquidacion;
     private int anioLiquidacion;
     private String [][] haberes = new String [1][4];
+    private double montoLiquidacion;
 
     public double getHaberesTotales() {
         return haberesTotales;
@@ -76,6 +77,6 @@ public class BonoSueldo {
         this.montoLiquidacion = montoLiquidacion;
     }
 
-    private double montoLiquidacion;
+
 
 }

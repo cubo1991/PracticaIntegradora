@@ -27,7 +27,7 @@ public class CalculoBonoSueldo {
             bonoSueldo.setMesLiquidacion(mesFacturacion);
             bonoSueldo.setAnioLiquidacion(anioFacturacion);
 
-            // Definir y preparar arreglos para haberes y deducciones
+
             String[][] haberes = {
                     {"100", "Presentismo", "9"},
                     {"101", "Titulo Profesional", "9"},
@@ -45,101 +45,20 @@ public class CalculoBonoSueldo {
 
             List<Integer> codigosIngresados = new ArrayList<>();
 
-            // Procesar Haberes
-            System.out.println("Por favor, ingrese los Haberes del Empleado");
-            String[][] haberesCalculados = new String[10][4];
-          double haberesTotales = 0.0;
-
-            while (true) {
-                System.out.println("Ingrese el código del haber o '0' para terminar:");
-                int codigoItem = Integer.parseInt(sc.nextLine());
-                if (codigoItem == 0) break;
-
-                if (codigosIngresados.contains(codigoItem)) {
-                    System.out.println("Código ya ingresado. Ingrese otro.");
-                    continue;
-                }
-
-                boolean encontrado = false;
-                for (String[] haber : haberes) {
-                    if (haber[0].equals(String.valueOf(codigoItem))) {
-                        encontrado = true;
-                        int indice = codigosIngresados.size();
-
-                        haberesCalculados[indice][0] = haber[0];
-                        haberesCalculados[indice][1] = haber[1];
-
-                        if (haber[2].equals("M")) {
-                            System.out.println("Ingrese el monto:");
-                            haberesCalculados[indice][2] = sc.nextLine();
-                        } else {
-                            int porcentaje = Integer.parseInt(haber[2]);
-                            haberesCalculados[indice][2] = String.valueOf(empleado.getSueldoBasico() * porcentaje / 100.0);
-                        }
-                        haberesTotales += Double.parseDouble(haberesCalculados[indice][2]);
-                        bonoSueldo.setHaberesTotales(haberesTotales);
-                        codigosIngresados.add(codigoItem);
-                        break;
-                    }
-                }
-                if (!encontrado) System.out.println("Código no encontrado.");
-            }
-            bonoSueldo.setHaberes(haberesCalculados);
-
-            // Procesar Deducciones
-            System.out.println("Por favor, ingrese las Deducciones del Empleado");
-            String[][] deduccionesCalculadas = new String[10][4];
-            double deduccionesTotales = 0.0;
-            codigosIngresados.clear();
-
-            while (true) {
-                System.out.println("Ingrese el código de deducción o '0' para terminar:");
-                int codigoItem = Integer.parseInt(sc.nextLine());
-                if (codigoItem == 0) break;
-
-                if (codigosIngresados.contains(codigoItem)) {
-                    System.out.println("Código ya ingresado. Ingrese otro.");
-                    continue;
-                }
-
-                boolean encontrado = false;
-                for (String[] deduccion : deducciones) {
-                    if (deduccion[0].equals(String.valueOf(codigoItem))) {
-                        encontrado = true;
-                        int indice = codigosIngresados.size();
-
-                        deduccionesCalculadas[indice][0] = deduccion[0];
-                        deduccionesCalculadas[indice][1] = deduccion[1];
-
-                        if (deduccion[2].equals("M")) {
-                            System.out.println("Ingrese el monto:");
-                            deduccionesCalculadas[indice][3] = sc.nextLine();
-                        } else {
-                            Double porcentaje = Double.parseDouble(deduccion[2]);
-                            deduccionesCalculadas[indice][3] = String.valueOf(empleado.getSueldoBasico() * porcentaje / 100.0);
-                        }
-                        deduccionesTotales += Double.parseDouble(deduccionesCalculadas[indice][3]);
-                        bonoSueldo.setDeduccionesTotales(deduccionesTotales);
-                        codigosIngresados.add(codigoItem);
-                        break;
-                    }
-                }
-                if (!encontrado) System.out.println("Código no encontrado.");
-            }
-            bonoSueldo.setDeducciones(deduccionesCalculadas);
-
-            // Calcular y asignar monto de liquidación
-            bonoSueldo.setMontoLiquidacion((empleado.getSueldoBasico() +empleado.getMontoAntiguedad() + haberesTotales) - deduccionesTotales);
-            bonoNuevo.add(bonoSueldo);
+            calcularHaberes(codigosIngresados, sc, empleado, bonoSueldo, haberes);
+            calcularDeducciones(codigosIngresados, sc, empleado, bonoSueldo, deducciones);
+            calcularLiquidacion(bonoSueldo, empleado, bonoNuevo);
 
             // Preguntar si se desea cargar otro bono
             System.out.println("¿Desea cargar un nuevo bono? 1- Sí, 2- No");
             opcion = Integer.parseInt(sc.nextLine());
         } while (opcion == 1);
 
+        mostrarBono(bonoNuevo);
+    }
 
-        // Mostrar resultados de todos los bonos
-        for (BonoSueldo bono : bonoNuevo) {
+    public static void mostrarBono(List<BonoSueldo> bonos) {
+        for (BonoSueldo bono : bonos) {
             // Encabezado del recibo, este debe imprimirse una vez por bono
             System.out.println("Nombre             : " + bono.getEmpleado().getNombreEmpleado());
             System.out.println("CUIL               : " + bono.getEmpleado().getCuil());
@@ -152,25 +71,21 @@ public class CalculoBonoSueldo {
             // Imprimir los haberes y deducciones
             System.out.printf("%-12s %-20s %-10s %-10s%n", "Ítem", "Denominación", "Haberes", "Deducciones");
             System.out.println("--------------------------------------------------------------------------------");
-            System.out.printf("%-12s %-20s %-10s %-10s%n","", "Sueldo básico", bono.getEmpleado().getSueldoBasico(), "");
-            System.out.printf("%-12s %-20s %-10s %-10s%n","", "Antiguedad", bono.getEmpleado().getMontoAntiguedad(), "");
+            System.out.printf("%-12s %-20s %-10s %-10s%n", "", "Sueldo básico", bono.getEmpleado().getSueldoBasico(), "");
+            System.out.printf("%-12s %-20s %-10s %-10s%n", "", "Antiguedad", bono.getEmpleado().getMontoAntiguedad(), "");
+
+            // Imprimir los haberes y deducciones del bono
             for (String[] haber : bono.getHaberes()) {
                 if (haber[0] != null) {
                     System.out.printf("%-12s %-20s %-10s %-10s%n",
-                            haber[0],
-                            haber[1],
-                            haber[2] != null ? haber[2] : "",
-                            haber[3] != null ? haber[3] : "");
+                            haber[0], haber[1], haber[2] != null ? haber[2] : "", haber[3] != null ? haber[3] : "");
                 }
             }
 
             for (String[] deduccion : bono.getDeducciones()) {
                 if (deduccion[0] != null) {
                     System.out.printf("%-12s %-20s %-10s %-10s%n",
-                            deduccion[0],
-                            deduccion[1],
-                            deduccion[2] != null ? deduccion[2] : "",
-                            deduccion[3] != null ? deduccion[3] : "");
+                            deduccion[0], deduccion[1], deduccion[2] != null ? deduccion[2] : "", deduccion[3] != null ? deduccion[3] : "");
                 }
             }
 
@@ -178,17 +93,103 @@ public class CalculoBonoSueldo {
             System.out.println("--------------------------------------------------------------------------------");
 
             // Imprimir subtotales de haberes y deducciones
-            System.out.printf("%-12s %-20s %-10s %-10s%n","", "SUB TOTAL", bono.getHaberesTotales(), bono.getDeduccionesTotales());
+            System.out.printf("%-12s %-20s %-10s %-10s%n", "", "SUB TOTAL", (bono.getHaberesTotales() + bono.getEmpleado().getSueldoBasico() + bono.getEmpleado().getMontoAntiguedad()), bono.getDeduccionesTotales());
 
             // Imprimir el total neto
-            System.out.printf("%-12s %-20s %-10s %-10s%n","","", "NETO", bono.getHaberesTotales()- bono.getDeduccionesTotales());
+            System.out.printf("%-12s %-20s %-10s %-10s%n", "", "", "NETO", bono.getMontoLiquidacion());
 
             // Línea separadora final
             System.out.println("--------------------------------------------------------------------------------");
         }
+    }
 
+    public static void calcularHaberes(List<Integer> codigosIngresados, Scanner sc, Empleado empleado, BonoSueldo bonoSueldo, String[][] haberes) {
+        System.out.println("Por favor, ingrese los Haberes del Empleado");
+        String[][] haberesCalculados = new String[10][4];
+        double haberesTotales = 0.0;
 
+        while (true) {
+            System.out.println("Ingrese el código del haber o '000' para terminar:");
+            int codigoItem = Integer.parseInt(sc.nextLine());
+            if (codigoItem == 000) break;
 
+            if (codigosIngresados.contains(codigoItem)) {
+                System.out.println("Código ya ingresado. Ingrese otro.");
+                continue;
+            }
+
+            boolean encontrado = false;
+            for (String[] haber : haberes) {
+                if (haber[0].equals(String.valueOf(codigoItem))) {
+                    encontrado = true;
+                    int indice = codigosIngresados.size();
+
+                    haberesCalculados[indice][0] = haber[0];
+                    haberesCalculados[indice][1] = haber[1];
+
+                    if (haber[2].equals("M")) {
+                        System.out.println("Ingrese el monto:");
+                        haberesCalculados[indice][2] = sc.nextLine();
+                    } else {
+                        Double porcentaje = Double.parseDouble(haber[2]);
+                        haberesCalculados[indice][2] = String.valueOf(empleado.getSueldoBasico() * porcentaje / 100.0);
+                    }
+                    haberesTotales += Double.parseDouble(haberesCalculados[indice][2]);
+                    bonoSueldo.setHaberesTotales(haberesTotales);
+                    codigosIngresados.add(codigoItem);
+                    break;
+                }
+            }
+            if (!encontrado) System.out.println("Código no encontrado.");
+        }
+        bonoSueldo.setHaberes(haberesCalculados);
+    }
+
+    public static void calcularDeducciones(List<Integer> codigosIngresados, Scanner sc, Empleado empleado, BonoSueldo bonoSueldo, String[][] deducciones) {
+        System.out.println("Por favor, ingrese las Deducciones del Empleado");
+        String[][] deduccionesCalculadas = new String[10][4];
+        double deduccionesTotales = 0.0;
+        codigosIngresados.clear();
+
+        while (true) {
+            System.out.println("Ingrese el código de deducción o '0' para terminar:");
+            int codigoItem = Integer.parseInt(sc.nextLine());
+            if (codigoItem == 0) break;
+
+            if (codigosIngresados.contains(codigoItem)) {
+                System.out.println("Código ya ingresado. Ingrese otro.");
+                continue;
+            }
+
+            boolean encontrado = false;
+            for (String[] deduccion : deducciones) {
+                if (deduccion[0].equals(String.valueOf(codigoItem))) {
+                    encontrado = true;
+                    int indice = codigosIngresados.size();
+
+                    deduccionesCalculadas[indice][0] = deduccion[0];
+                    deduccionesCalculadas[indice][1] = deduccion[1];
+
+                    if (deduccion[2].equals("M")) {
+                        System.out.println("Ingrese el monto:");
+                        deduccionesCalculadas[indice][3] = sc.nextLine();
+                    } else {
+                        Double porcentaje = Double.parseDouble(deduccion[2]);
+                        deduccionesCalculadas[indice][3] = String.valueOf(empleado.getSueldoBasico() * porcentaje / 100.0);
+                    }
+                    deduccionesTotales += Double.parseDouble(deduccionesCalculadas[indice][3]);
+                    bonoSueldo.setDeduccionesTotales(deduccionesTotales);
+                    codigosIngresados.add(codigoItem);
+                    break;
+                }
+            }
+            if (!encontrado) System.out.println("Código no encontrado.");
+        }
+        bonoSueldo.setDeducciones(deduccionesCalculadas);
+    }
+    public static void calcularLiquidacion (BonoSueldo bonoSueldo, Empleado empleado,  List<BonoSueldo> bonoNuevo){
+        bonoSueldo.setMontoLiquidacion((empleado.getSueldoBasico() + empleado.getMontoAntiguedad() + bonoSueldo.getHaberesTotales()) - bonoSueldo.getDeduccionesTotales());
+        bonoNuevo.add(bonoSueldo);
 
     }
 }
